@@ -31,8 +31,8 @@ DIST = BUNDLED / "dist"
 def find_engine() -> Path | None:
     candidates = [
         APP_DIR / "engine" / "dist",
-        Path.home() / "Documents" / "GitHub" / "w-odaka-voicechanger" / "voice-changer" / "dist",
-        Path("C:/Users/Isra/Documents/GitHub/w-odaka-voicechanger/voice-changer/dist"),
+        Path.home() / "Documents" / "GitHub" / "w-okada" / "voice-changer" / "dist",
+        Path("C:/Users/Isra/Documents/GitHub/w-okada/voice-changer/dist"),
     ]
     for c in candidates:
         if (c / "main.exe").exists():
@@ -56,14 +56,19 @@ def bundle_engine(engine_dir: Path):
 
 def build_exe():
     print("Building EXE with PyInstaller...")
-    # Use the pyinstaller entry point directly (avoids "No module named pyinstaller"
-    # when invoked as `python -m pyinstaller` in some environments).
-    pyinstaller = shutil.which("pyinstaller") or "pyinstaller"
-    cmd = [
-        pyinstaller,
+    # Prefer the pyinstaller console script; fall back to `python -m PyInstaller`
+    # (the module is importable even when the `pyinstaller` script is not on PATH).
+    pyinstaller = shutil.which("pyinstaller")
+    if pyinstaller:
+        cmd = [pyinstaller]
+    else:
+        pyinstaller = f"{sys.executable} -m PyInstaller"
+        cmd = [sys.executable, "-m", "PyInstaller"]
+    print(f"Using: {pyinstaller}")
+    cmd += [
         "--onefile", "--windowed",
         "--name", "IstarVoiceChanger",
-        f"--add-data", f"{BUNDLED};engine_dist",
+        "--add-data", f"{BUNDLED};engine_dist",
         str(LAUNCHER),
     ]
     subprocess.check_call(cmd)

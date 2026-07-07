@@ -166,3 +166,9 @@ PRs welcome! Keep launcher code MIT-licensed. Respect upstream's CLA and the non
 | Model weights | varies (usually CC BY-NC) — user-supplied |
 
 See [`LICENSE`](LICENSE) (upstream) and [`LICENSE.launcher`](LICENSE.launcher) (ours).
+
+---
+
+## 🌐 Other languages
+
+- [Español](README_es.md)

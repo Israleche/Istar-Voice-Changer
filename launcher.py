@@ -44,7 +44,7 @@ except ImportError:
 # Configuration
 # ---------------------------------------------------------------------------
 APP_NAME = "Istar Voice Changer"
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.2.1"
 UPSTREAM_REPO = "w-okada/voice-changer"
 FORK_REPO = "Israleche/Istar-Voice-Changer"
 ENGINE_VERSION = "2.0.78-beta"
@@ -354,7 +354,11 @@ class VoiceChangerApp:
         try:
             mode = self.mode_var.get()
             https_flag = "true" if mode == "https" else "false"
-            cmd = [str(MAIN_EXE), "cui", "--https", https_flag, "--no_cui", "True"]
+            port = self.port_var.get()
+            # The engine listens on -p (default 18888). We must pass the port the
+            # user configured, otherwise the launcher waits on the wrong port and
+            # the server is never detected as ready.
+            cmd = [str(MAIN_EXE), "cui", "-p", port, "--https", https_flag, "--no_cui", "True"]
             self.server_process = subprocess.Popen(
                 cmd, cwd=str(DIST_DIR),
                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
@@ -389,8 +393,9 @@ class VoiceChangerApp:
     def _on_server_ready(self, mode, port):
         self.status_var.set("Status: Running")
         self.header_status.config(text="● Online", fg=COLORS["success"])
-        self._log(f"Server ready at http://localhost:{port}", "SUCCESS")
-        webbrowser.open(f"http://localhost:{port}")
+        scheme = "https" if mode == "https" else "http"
+        self._log(f"Server ready at {scheme}://localhost:{port}", "SUCCESS")
+        webbrowser.open(f"{scheme}://localhost:{port}")
 
     def stop_server(self):
         if self.server_process:
