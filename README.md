@@ -25,9 +25,9 @@ This project is a **fork**: we keep the upstream engine and architecture, add ou
 
 ## 🚀 Features
 
-- 🎮 **One-click launcher** (GUI) — start/stop the server, no terminal needed
+- 🎮 **One-click installer EXE** — no Python, no setup, no terminal needed
+- 📦 **Self-contained** — the engine is bundled inside the EXE; just run it
 - ⚙️ Configurable **port** and **HTTP/HTTPS** mode
-- 🔧 **Auto-download engine** — the 400 MB engine is fetched on demand (repo stays light)
 - 🌐 **Web UI** — opens automatically when the server is ready
 - 📊 System info, logs, and engine status at a glance
 - 🧩 Multi-model: RVC, Beatrice v2, DDSP-SVC, MMVC, so-vits-svc
@@ -35,25 +35,42 @@ This project is a **fork**: we keep the upstream engine and architecture, add ou
 
 ---
 
-## 📦 Installation
+## 📦 Installation — For Users (zero setup)
 
-### Option A — Launcher only (recommended)
+1. Download **`IstarVoiceChanger.exe`** from the [releases page](https://github.com/Israleche/Istar-Voice-Changer/releases).
+2. Double-click it. On first run, click **⬇ Install / Extract Engine** (one button).
+3. Click **▶ Start Voice Changer**.
+4. The web UI opens at `http://localhost:18000` when ready (~10–60 s).
+
+That's it. No Python install, no command line.
+
+> If you already have `main.exe` somewhere, click **📂 Use existing main.exe** and select it — no download needed.
+
+---
+
+## 🛠️ Installation — For Developers
+
+### Run from source
 
 ```powershell
-# 1. Clone
 git clone https://github.com/Israleche/Istar-Voice-Changer.git
 cd Istar-Voice-Changer
-
-# 2. Run setup (installs deps + downloads the engine)
-python setup.py
-
-# 3. Launch
-python launcher.py
-# or build an EXE once:
-pyinstaller --onefile --windowed --name IstarVoiceChanger launcher.py
+python setup.py          # install deps (psutil, py7zr, pyinstaller)
+python launcher.py      # run the GUI
 ```
 
-### Option B — Use the prebuilt engine you already have
+### Build the all-in-one installer EXE
+
+```powershell
+# Bundle the engine you already have, then compile a self-contained EXE:
+python build_installer.py --engine-dir "C:/path/to/voice-changer/dist"
+# or let it auto-detect common locations:
+python build_installer.py
+```
+
+The output `dist/IstarVoiceChanger.exe` is fully self-contained and can be shared as-is.
+
+### Option — Use a prebuilt engine you already have
 
 If you already have `main.exe` from w-okada's release, just place it at:
 

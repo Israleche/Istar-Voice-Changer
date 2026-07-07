@@ -6,8 +6,11 @@ Prepares the environment for Istar Voice Changer:
   1. Installs Python dependencies (psutil, py7zr, pyinstaller).
   2. Downloads the upstream voice-changer engine (main.exe) if missing.
 
-The engine is downloaded from the upstream w-okada/voice-changer release to keep
-this repository lightweight. The engine is licensed separately (CC BY-NC 4.0).
+The engine is downloaded from the upstream w-okada/voice-changer release when
+available. The upstream project does not publish a 2.0.78-beta GitHub release, so
+this step is best-effort only. For a zero-setup experience, use the bundled
+IstarVoiceChanger.exe (engine included) or point the launcher at an existing
+main.exe. The engine is licensed separately (CC BY-NC 4.0).
 
 Usage:
     python setup.py            # install deps + download engine
@@ -71,9 +74,15 @@ def download_engine():
             print(f"  candidate not found: {e}")
             continue
 
-    print("Could not auto-download the engine.")
-    print(f"Please download it manually from: https://github.com/{UPSTREAM_REPO}/releases/tag/{ENGINE_VERSION}")
-    print(f"and extract it so that 'engine/dist/main.exe' exists.")
+    # Best-effort only: the upstream project does not publish a 2.0.78-beta
+    # GitHub release, so auto-download is expected to fail. The recommended
+    # path is the self-contained IstarVoiceChanger.exe (engine bundled), or
+    # pointing the launcher at an existing main.exe via "Use existing main.exe".
+    print("NOTE: could not auto-download the engine (no upstream release for this version).")
+    print("This is expected. Options:")
+    print("  - Use the bundled IstarVoiceChanger.exe (engine included).")
+    print("  - In the launcher, click 'Use existing main.exe' and select your main.exe.")
+    print(f"  - Or get it from upstream: https://github.com/{UPSTREAM_REPO}")
 
 
 def extract_engine(archive_path: Path):

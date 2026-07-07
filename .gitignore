@@ -78,6 +78,7 @@ server/model_dir_static/Beatrice-JVS
 
 # Istar Voice Changer launcher artifacts
 engine/
+engine_dist/
 logs/
 dist/
 build/

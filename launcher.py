@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """
-Istar Voice Changer - Launcher
-A user-friendly GUI launcher for the Istar Voice Changer (fork of w-okada/voice-changer).
+Istar Voice Changer - All-in-One Launcher & Installer
+=====================================================
 
-This launcher wraps the original voice-changer engine (main.exe) with a simple
-interface: start/stop the server, configure port/mode, open the web UI, and
-download the engine if it is missing.
+A single, user-friendly GUI that:
+  * Installs everything with ONE click (extracts the bundled engine, installs
+    Python deps if needed).
+  * Starts/stops the voice-changer server.
+  * Opens the web UI automatically when ready.
+
+No prior setup required. If the engine is bundled next to this EXE (in an
+`engine_dist` folder), it is extracted on first run. Otherwise the user can
+point the installer at an existing main.exe, or download it.
 
 Credits:
-- Original engine: w-okada/voice-changer (https://github.com/w-okada/voice-changer)
-  Licensed under CC BY-NC 4.0 (see LICENSE in the upstream repo).
-- This launcher and packaging: Istar Voice Changer project.
+- Original engine: w-okada/voice-changer (CC BY-NC 4.0).
+- Launcher/installer: Istar Voice Changer project (MIT).
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import ttk, messagebox, filedialog, scrolledtext
 import subprocess
 import os
 import json
@@ -39,34 +44,53 @@ except ImportError:
 # Configuration
 # ---------------------------------------------------------------------------
 APP_NAME = "Istar Voice Changer"
-APP_VERSION = "0.1.0"
-UPSTREAM_REPO = "w-okada/voice-changer"          # original project (credit)
-FORK_REPO = "Israleche/Istar-Voice-Changer"      # this project
-ENGINE_VERSION = "2.0.78-beta"                    # engine release tag
+APP_VERSION = "0.2.0"
+UPSTREAM_REPO = "w-okada/voice-changer"
+FORK_REPO = "Israleche/Istar-Voice-Changer"
+ENGINE_VERSION = "2.0.78-beta"
 
-# The engine (main.exe) is downloaded separately to keep the repo light.
-ENGINE_RELEASE_URL = (
-    f"https://github.com/{UPSTREAM_REPO}/releases/download/{ENGINE_VERSION}"
-)
+# When bundled as an EXE, resources live next to the executable. When run from
+# source, they live next to this script.
+if getattr(sys, "frozen", False):
+    APP_DIR = Path(sys.executable).parent
+    # PyInstaller extracts --add-data into a temp folder named _MEIPASS.
+    _MEIPASS = Path(getattr(sys, "_MEIPASS", str(APP_DIR)))
+else:
+    APP_DIR = Path(__file__).parent
+    _MEIPASS = APP_DIR
 
-BASE_DIR = Path(__file__).parent
-ENGINE_DIR = BASE_DIR / "engine"
-DIST_DIR = ENGINE_DIR / "dist"
+# The engine is stored either bundled (engine_dist/) or extracted (engine/).
+# When frozen, the bundled engine may live inside _MEIPASS (PyInstaller) or
+# next to the EXE (if the user dropped engine_dist beside it).
+BUNDLED_ENGINE_DIRS = [APP_DIR / "engine_dist", _MEIPASS / "engine_dist"]
+BUNDLED_ENGINE = APP_DIR / "engine_dist"          # primary (used for extraction source)
+EXTRACTED_ENGINE = APP_DIR / "engine"            # where it gets extracted to
+DIST_DIR = EXTRACTED_ENGINE / "dist"
 MAIN_EXE = DIST_DIR / "main.exe"
-LOG_FILE = BASE_DIR / "logs" / "launcher.log"
-CONFIG_FILE = BASE_DIR / "config.json"
+
+
+def _find_bundled_engine() -> Path | None:
+    """Return the first existing bundled engine_dist directory, or None."""
+    for d in BUNDLED_ENGINE_DIRS:
+        if d.exists() and (d / "dist" / "main.exe").exists():
+            return d
+        if d.exists() and (d / "main.exe").exists():
+            return d
+    return None
+LOG_FILE = APP_DIR / "logs" / "launcher.log"
+CONFIG_FILE = APP_DIR / "config.json"
 
 # Colors (modern, light theme)
 COLORS = {
-    "primary": "#6366F1",      # indigo
-    "secondary": "#10B981",    # emerald
-    "danger": "#EF4444",       # red
-    "warning": "#F59E0B",      # amber
+    "primary": "#6366F1",
+    "secondary": "#10B981",
+    "danger": "#EF4444",
+    "warning": "#F59E0B",
     "background": "#F8FAFC",
     "surface": "#FFFFFF",
     "text": "#1E293B",
     "muted": "#64748B",
-    "header": "#1E1B4B",       # deep indigo
+    "header": "#1E1B4B",
     "success": "#10B981",
     "border": "#E2E8F0",
 }
@@ -76,8 +100,8 @@ class VoiceChangerApp:
     def __init__(self, root):
         self.root = root
         self.root.title(f"{APP_NAME} v{APP_VERSION}")
-        self.root.geometry("920x680")
-        self.root.minsize(820, 580)
+        self.root.geometry("920x700")
+        self.root.minsize(820, 600)
         self.root.configure(bg=COLORS["background"])
 
         self.server_process = None
@@ -89,14 +113,13 @@ class VoiceChangerApp:
 
     # ------------------------------------------------------------------ UI
     def _create_widgets(self):
-        # Header
         header = tk.Frame(self.root, bg=COLORS["header"], height=84)
         header.pack(fill=tk.X)
         header.pack_propagate(False)
 
         tk.Label(header, text=APP_NAME, font=("Segoe UI", 22, "bold"),
                  fg="white", bg=COLORS["header"]).pack(side=tk.LEFT, padx=22, pady=8)
-        tk.Label(header, text=f"v{APP_VERSION}  ·  fork of {UPSTREAM_REPO}",
+        tk.Label(header, text=f"v{APP_VERSION}  ·  one-click installer",
                  font=("Segoe UI", 10), fg="#A5B4FC", bg=COLORS["header"]).pack(side=tk.LEFT, padx=8)
 
         self.header_status = tk.Label(header, text="● Offline",
@@ -104,7 +127,6 @@ class VoiceChangerApp:
                                        fg=COLORS["danger"], bg=COLORS["header"])
         self.header_status.pack(side=tk.RIGHT, padx=22)
 
-        # Main content
         main = tk.Frame(self.root, bg=COLORS["background"])
         main.pack(fill=tk.BOTH, expand=True, padx=16, pady=12)
 
@@ -120,18 +142,25 @@ class VoiceChangerApp:
         self._create_right_panel(right)
 
     def _create_left_panel(self, parent):
-        # Engine status card
-        card0 = self._card(parent, "🔧 Engine")
+        # Install card
+        card0 = self._card(parent, "🔧 Setup (one click)")
         self.engine_status_var = tk.StringVar(value="Checking...")
         tk.Label(card0, textvariable=self.engine_status_var, font=("Segoe UI", 10),
                  bg=COLORS["surface"], fg=COLORS["muted"]).pack(anchor=tk.W, padx=15, pady=(0, 8))
-        self.download_btn = tk.Button(card0, text="⬇ Download Engine",
-                                      command=self._download_engine,
-                                      font=("Segoe UI", 10, "bold"),
-                                      bg=COLORS["primary"], fg="white",
-                                      relief=tk.FLAT, padx=10, pady=6, cursor="hand2")
-        self.download_btn.pack(fill=tk.X, padx=15, pady=(0, 10))
-        self.download_btn.pack_forget()  # hidden until needed
+
+        self.install_btn = tk.Button(card0, text="⬇ Install / Extract Engine",
+                                     command=self._install_engine,
+                                     font=("Segoe UI", 10, "bold"),
+                                     bg=COLORS["primary"], fg="white",
+                                     relief=tk.FLAT, padx=10, pady=6, cursor="hand2")
+        self.install_btn.pack(fill=tk.X, padx=15, pady=(0, 6))
+
+        self.browse_btn = tk.Button(card0, text="📂 Use existing main.exe",
+                                    command=self._browse_engine,
+                                    font=("Segoe UI", 9),
+                                    bg=COLORS["surface"], fg=COLORS["text"],
+                                    relief=tk.FLAT, padx=10, pady=4, cursor="hand2")
+        self.browse_btn.pack(fill=tk.X, padx=15, pady=(0, 10))
 
         # Control card
         card1 = self._card(parent, "🎮 Control")
@@ -176,7 +205,7 @@ class VoiceChangerApp:
         tk.Button(card3, text="📊 System Info", command=self.show_system_info,
                   font=("Segoe UI", 10), bg=COLORS["primary"], fg="white",
                   relief=tk.FLAT, padx=10, pady=5).pack(fill=tk.X, padx=15, pady=3)
-        tk.Button(card3, text="⭐ Project / Source", command=lambda: webbrowser.open(f"https://github.com/{FORK_REPO}"),
+        tk.Button(card3, text="⭐ Source / Help", command=lambda: webbrowser.open(f"https://github.com/{FORK_REPO}"),
                   font=("Segoe UI", 10), bg=COLORS["warning"], fg="white",
                   relief=tk.FLAT, padx=10, pady=5).pack(fill=tk.X, padx=15, pady=3)
 
@@ -207,63 +236,106 @@ class VoiceChangerApp:
     def _refresh_engine_status(self):
         if MAIN_EXE.exists():
             size_mb = MAIN_EXE.stat().st_size / (1024 * 1024)
-            self.engine_status_var.set(f"✓ Engine found ({size_mb:.0f} MB)")
-            self.download_btn.pack_forget()
+            self.engine_status_var.set(f"✓ Engine ready ({size_mb:.0f} MB)")
+            self.install_btn.pack_forget()
+            self.browse_btn.pack_forget()
+        elif _find_bundled_engine() is not None:
+            self.engine_status_var.set("⚠ Engine bundled — click Install")
+            self.install_btn.config(text="⬇ Extract Bundled Engine")
+            self.install_btn.pack(fill=tk.X, padx=15, pady=(0, 6))
+            self.browse_btn.pack(fill=tk.X, padx=15, pady=(0, 10))
         else:
-            self.engine_status_var.set("✗ Engine not found (main.exe missing)")
-            self.download_btn.pack(fill=tk.X, padx=15, pady=(0, 10))
+            self.engine_status_var.set("✗ Engine missing")
+            self.install_btn.config(text="⬇ Install / Extract Engine")
+            self.install_btn.pack(fill=tk.X, padx=15, pady=(0, 6))
+            self.browse_btn.pack(fill=tk.X, padx=15, pady=(0, 10))
 
-    def _download_engine(self):
+    def _install_engine(self):
         if MAIN_EXE.exists():
             return
-        threading.Thread(target=self._download_engine_thread, daemon=True).start()
+        threading.Thread(target=self._install_engine_thread, daemon=True).start()
 
-    def _download_engine_thread(self):
-        self.download_btn.config(state=tk.DISABLED, text="⬇ Downloading...")
-        self._log(f"Downloading engine from {ENGINE_RELEASE_URL} ...", "INFO")
+    def _install_engine_thread(self):
+        self.install_btn.config(state=tk.DISABLED, text="⬇ Installing...")
         try:
-            ENGINE_DIR.mkdir(parents=True, exist_ok=True)
-            # The upstream release provides a zip; we download and extract.
-            candidates = [
-                f"voice-changer_{ENGINE_VERSION}_cpu.7z",
-                f"voice-changer_{ENGINE_VERSION}_std.7z",
-                f"voice-changer_{ENGINE_VERSION}.7z",
-            ]
-            downloaded = False
-            for cand in candidates:
-                url = f"{ENGINE_RELEASE_URL}/{cand}"
-                dest = ENGINE_DIR / cand
+            bundled = _find_bundled_engine()
+            if bundled is not None:
+                self._log("Extracting bundled engine...", "INFO")
+                EXTRACTED_ENGINE.mkdir(parents=True, exist_ok=True)
+                # Copy the bundled dist folder to engine/dist
+                bundled_dist = bundled / "dist"
+                if bundled_dist.exists():
+                    if DIST_DIR.exists():
+                        shutil.rmtree(DIST_DIR)
+                    shutil.copytree(bundled_dist, DIST_DIR)
+                else:
+                    # Copy whole bundled folder content
+                    for item in bundled.iterdir():
+                        dest = EXTRACTED_ENGINE / item.name
+                        if item.is_dir():
+                            shutil.copytree(item, dest, dirs_exist_ok=True)
+                        else:
+                            shutil.copy2(item, dest)
+                self._log("Engine extracted.", "SUCCESS")
+            else:
+                # Try to download (best-effort; may fail if no release)
+                self._log("No bundled engine. Attempting download...", "INFO")
+                if not self._try_download():
+                    self._log("Auto-install unavailable. Use 'Browse' to select main.exe.", "ERROR")
+                    self.root.after(0, lambda: messagebox.showinfo(
+                        "Engine needed",
+                        "The engine (main.exe) could not be downloaded automatically.\n\n"
+                        "Click 'Use existing main.exe' and select the main.exe you already have,\n"
+                        "or download it from the upstream project."))
+            self.root.after(0, self._refresh_engine_status)
+        except Exception as e:
+            self._log(f"Install failed: {e}", "ERROR")
+        finally:
+            self.root.after(0, lambda: self.install_btn.config(state=tk.NORMAL, text="⬇ Install / Extract Engine"))
+
+    def _try_download(self):
+        # Best-effort download from known upstream release patterns.
+        candidates = [
+            f"https://github.com/{UPSTREAM_REPO}/releases/download/{ENGINE_VERSION}/voice-changer_{ENGINE_VERSION}_cpu.7z",
+            f"https://github.com/{UPSTREAM_REPO}/releases/download/{ENGINE_VERSION}/voice-changer_{ENGINE_VERSION}_std.7z",
+        ]
+        EXTRACTED_ENGINE.mkdir(parents=True, exist_ok=True)
+        for url in candidates:
+            try:
+                dest = EXTRACTED_ENGINE / "engine.7z"
+                urllib.request.urlretrieve(url, dest)
                 try:
-                    urllib.request.urlretrieve(url, dest)
-                    downloaded = True
-                    self._log(f"Downloaded {cand}", "SUCCESS")
-                    break
-                except urllib.error.URLError:
-                    continue
-            if not downloaded:
-                self._log("Could not auto-download. Open the release page manually.", "ERROR")
-                webbrowser.open(f"https://github.com/{UPSTREAM_REPO}/releases/tag/{ENGINE_VERSION}")
-                self.download_btn.config(state=tk.NORMAL, text="⬇ Download Engine")
-                return
-            self._extract_engine(dest)
-        except Exception as e:
-            self._log(f"Download failed: {e}", "ERROR")
-            self.download_btn.config(state=tk.NORMAL, text="⬇ Download Engine")
+                    import py7zr
+                    py7zr.unpack_7z(str(dest), str(EXTRACTED_ENGINE))
+                    dest.unlink(missing_ok=True)
+                    return MAIN_EXE.exists()
+                except ImportError:
+                    self._log("py7zr missing; cannot extract.", "WARNING")
+                    return False
+            except urllib.error.URLError:
+                continue
+        return False
 
-    def _extract_engine(self, archive_path):
-        try:
-            import py7zr
-            py7zr.unpack_7z(str(archive_path), str(ENGINE_DIR))
-            archive_path.unlink(missing_ok=True)
-            self._log("Engine extracted.", "SUCCESS")
-            self._refresh_engine_status()
-            self.download_btn.config(state=tk.NORMAL, text="⬇ Download Engine")
-        except ImportError:
-            self._log("py7zr not installed. Run: pip install py7zr", "WARNING")
-            self.download_btn.config(state=tk.NORMAL, text="⬇ Download Engine")
-        except Exception as e:
-            self._log(f"Extraction failed: {e}", "ERROR")
-            self.download_btn.config(state=tk.NORMAL, text="⬇ Download Engine")
+    def _browse_engine(self):
+        path = filedialog.askopenfilename(
+            title="Select main.exe (voice-changer engine)",
+            filetypes=[("Executable", "main.exe"), ("All", "*.*")])
+        if not path:
+            return
+        EXTRACTED_ENGINE.mkdir(parents=True, exist_ok=True)
+        if DIST_DIR.exists():
+            shutil.rmtree(DIST_DIR)
+        DIST_DIR.mkdir(parents=True)
+        # Copy the selected exe and its sibling files (start_*.bat, web_front, etc.)
+        src_dir = Path(path).parent
+        for item in src_dir.iterdir():
+            dest = DIST_DIR / item.name
+            if item.is_dir():
+                shutil.copytree(item, dest, dirs_exist_ok=True)
+            else:
+                shutil.copy2(item, dest)
+        self._log(f"Engine installed from {src_dir}", "SUCCESS")
+        self._refresh_engine_status()
 
     # -------------------------------------------------------------- server
     def toggle_server(self):
@@ -275,19 +347,17 @@ class VoiceChangerApp:
     def start_server(self):
         if not MAIN_EXE.exists():
             messagebox.showerror("Engine missing",
-                                 "The voice-changer engine (main.exe) was not found.\n"
-                                 "Click 'Download Engine' or place it in engine/dist/main.exe")
+                                 "The engine is not installed yet.\nClick 'Install / Extract Engine' "
+                                 "or 'Use existing main.exe' first.")
             self._refresh_engine_status()
             return
         try:
             mode = self.mode_var.get()
             https_flag = "true" if mode == "https" else "false"
             cmd = [str(MAIN_EXE), "cui", "--https", https_flag, "--no_cui", "True"]
-
             self.server_process = subprocess.Popen(
                 cmd, cwd=str(DIST_DIR),
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-            )
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
             self.is_running = True
             self.status_var.set("Status: Starting...")
             self.header_status.config(text="● Starting...", fg=COLORS["warning"])
@@ -302,7 +372,7 @@ class VoiceChangerApp:
     def _wait_for_server(self, mode):
         port = self.port_var.get()
         url = f"http://localhost:{port}" if mode == "http" else f"https://localhost:{port}"
-        for _ in range(90):  # up to 90s
+        for _ in range(90):
             if not self.is_running:
                 return
             try:
@@ -340,16 +410,16 @@ class VoiceChangerApp:
 
     # -------------------------------------------------------------- helpers
     def open_engine_dir(self):
-        if ENGINE_DIR.exists():
-            os.startfile(str(ENGINE_DIR))
+        d = DIST_DIR if DIST_DIR.exists() else EXTRACTED_ENGINE
+        if d.exists():
+            os.startfile(str(d))
         else:
-            messagebox.showwarning("Warning", f"Folder not found: {ENGINE_DIR}")
+            messagebox.showwarning("Warning", f"Folder not found: {d}")
 
     def open_web_interface(self):
         mode = self.mode_var.get()
         port = self.port_var.get()
-        url = f"http://localhost:{port}" if mode == "http" else f"https://localhost:{port}"
-        webbrowser.open(url)
+        webbrowser.open(f"http://localhost:{port}" if mode == "http" else f"https://localhost:{port}")
 
     def show_system_info(self):
         info = [f"OS: {platform.system()} {platform.release()}",
@@ -389,11 +459,13 @@ class VoiceChangerApp:
     def _update_system_info(self):
         info = [f"OS: {platform.system()} {platform.release()}",
                 f"Python: {platform.python_version()}",
-                f"Engine dir: {ENGINE_DIR}"]
+                f"App dir: {APP_DIR}"]
         if MAIN_EXE.exists():
             info.append(f"✓ main.exe present ({MAIN_EXE.stat().st_size/1e6:.0f} MB)")
+        elif _find_bundled_engine() is not None:
+            info.append("⚠ Bundled engine not extracted yet")
         else:
-            info.append("✗ main.exe missing — use Download Engine")
+            info.append("✗ main.exe missing — install first")
         if PSUTIL_AVAILABLE:
             try:
                 mem = psutil.virtual_memory()
