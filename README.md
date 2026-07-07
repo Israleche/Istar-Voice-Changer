@@ -1,174 +1,151 @@
-[日本語](/README.md) /
-[英語](/docs_i18n/README_en.md) /
-[韓国語](/docs_i18n/README_ko.md)/
-[中国語](/docs_i18n/README_zh.md)/
-[ドイツ語](/docs_i18n/README_de.md)/
-[アラビア語](/docs_i18n/README_ar.md)/
-[ギリシャ語](/docs_i18n/README_el.md)/
-[スペイン語](/docs_i18n/README_es.md)/
-[フランス語](/docs_i18n/README_fr.md)/
-[イタリア語](/docs_i18n/README_it.md)/
-[ラテン語](/docs_i18n/README_la.md)/
-[マレー語](/docs_i18n/README_ms.md)/
-[ロシア語](/docs_i18n/README_ru.md) \*日本語以外は機械翻訳です。
+# Istar Voice Changer
 
-## VCClient
+> A free, open, real-time voice changer. A community fork of [w-okada/voice-changer](https://github.com/w-okada/voice-changer) with a focus on an easy-to-use launcher, broad hardware support, and the best open-source voice-conversion models.
 
-VCClient は、AI を用いてリアルタイム音声変換を行うソフトウェアです。
+[![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-blue.svg)](LICENSE)
+[![Engine](https://img.shields.io/badge/engine-2.0.78--beta-green.svg)](https://github.com/w-okada/voice-changer/releases)
 
-## What's New!
+---
 
-- v.2.2.2-beta
-  - リリースエディション： std_win, std_mac, std_lin_aarch64
-  - v.2.2.2-betaよりエディション毎のサポートモデルが変わります（下記参照）。また、バージョンごとにリリースされるエディションが異なる場合があります。
-  - Beatrice v2.0.0-rc0 をサポート。
+## ✨ What is this?
 
-- v.2.1.3-alpha
+**Istar Voice Changer** wraps the powerful [w-okada/voice-changer](https://github.com/w-okada/voice-changer) engine behind a simple, friendly GUI launcher. It lets you convert your voice in real time using state-of-the-art open models (RVC, Beatrice v2, DDSP-SVC, MMVC, so-vits-svc) without touching the command line.
 
-  - ショートカットキー
-  - バッファの可視化
-  - currently only for rvc
+This project is a **fork**: we keep the upstream engine and architecture, add our own launcher/packaging, and track upstream releases so improvements can be merged back.
 
-- v.2.0.78-beta
+### Credits & License
 
-  - bugfix: RVC モデルのアップロードエラーを回避
-  - ver.1.x との同時起動ができるようになりました。
-  - 選択できる chunk size を増やしました。
+- **Engine & models:** © w-okada / voice-changer contributors. The engine (`main.exe`) and bundled models are distributed under **CC BY-NC 4.0** (non-commercial). See the upstream [`LICENSE`](https://github.com/w-okada/voice-changer/blob/master/LICENSE).
+- **Launcher & packaging:** © Istar Voice Changer project (MIT for our own additions — see `LICENSE.launcher`).
+- **Models you add:** you are responsible for using lawfully-obtained, appropriately-licensed model weights. Most community RVC/DDSP/so-vits models are shared under CC BY-NC or unspecified terms.
 
-- v.2.0.77-beta (only for RTX 5090, experimental)
-  - 関連モジュールを 5090 対応 (開発者が RTX5090 未所持のため、動作未検証)
-- v.2.0.76-beta
-  - new feature:
-    - Beatrice: 話者マージの実装
-    - Beatrice: オートピッチシフト
-  - bugfix:
-    - サーバモードのデバイス選択時の不具合対応
-- v.2.0.73-beta
-  - new feature:
-    - 編集した beatrice model のダウンロード
-  - bugfix:
-    - beatrice v2 の pitch, formant が反映されないバグを修正
-    - Applio の embedder を使用しているモデルの ONNX ができないバグを修正
+> ⚠️ **Non-commercial use.** This tool is free and open for personal, educational, and non-commercial use. Do not use it to impersonate others or for commercial purposes without proper rights.
 
-## エディション
+---
 
-v2.2.1 以降は、エディションによりサポートする AI モデルが異なります。
+## 🚀 Features
 
-| edition | platform       | Support Model |     |
-| ------- | -------------- | ------------- | --- |
-| std     | win            | Beatrice      |     |
-| std     | mac(m1)        | Beatrice      |     |
-| std     | linux(x86-64)  | Beatrice      |     |
-| std     | linux(aarch64) | Beatrice      |     |
-| cuda    | win            | Beatrice, RVC |     |
-| onnx    | win            | Beatrice, RVC |     |
-| onnx    | mac(m1)        | Beatrice, RVC |     |
+- 🎮 **One-click launcher** (GUI) — start/stop the server, no terminal needed
+- ⚙️ Configurable **port** and **HTTP/HTTPS** mode
+- 🔧 **Auto-download engine** — the 400 MB engine is fetched on demand (repo stays light)
+- 🌐 **Web UI** — opens automatically when the server is ready
+- 📊 System info, logs, and engine status at a glance
+- 🧩 Multi-model: RVC, Beatrice v2, DDSP-SVC, MMVC, so-vits-svc
+- 💻 CPU + GPU (CUDA / DirectML / ROCm / OpenVINO) support via the upstream engine
 
-## ダウンロードと関連リンク
+---
 
-Windows 版、 M1 Mac 版は hugging face のリポジトリからダウンロードできます。
+## 📦 Installation
 
-- [VCClient のリポジトリ](https://huggingface.co/wok000/vcclient000/tree/main)
-- [Light VCClient for Beatrice v2 のリポジトリ](https://huggingface.co/wok000/light_vcclient_beatrice/tree/main)
+### Option A — Launcher only (recommended)
 
-\*1 Linux はリポジトリを clone してお使いください。
+```powershell
+# 1. Clone
+git clone https://github.com/Israleche/Istar-Voice-Changer.git
+cd Istar-Voice-Changer
 
-### 関連リンク
+# 2. Run setup (installs deps + downloads the engine)
+python setup.py
 
-- [Beatrice V2 トレーニングコードのリポジトリ](https://huggingface.co/fierce-cats/beatrice-trainer)
-- [Beatrice V2 トレーニングコード Colab 版](https://github.com/w-okada/beatrice-trainer-colab)
-
-### 関連ソフトウェア
-
-- [リアルタイムボイスチェンジャ VCClient](https://github.com/w-okada/voice-changer)
-- [読み上げソフトウェア TTSClient](https://github.com/w-okada/ttsclient)
-- [リアルタイム音声認識ソフトウェア ASRClient](https://github.com/w-okada/asrclient)
-
-## VC Client の特徴
-
-## 多様な AI モデルをサポート
-
-| AI モデル                                                                                                    | v.2       | v.1                  | ライセンス                                                                                 |
-| ------------------------------------------------------------------------------------------------------------ | --------- | -------------------- | ------------------------------------------------------------------------------------------ |
-| [RVC ](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI/blob/main/docs/jp/README.ja.md) | supported | supported            | リポジトリを参照してください。                                                             |
-| [Beatrice v1](https://prj-beatrice.com/)                                                                     | n/a       | supported (only win) | [独自](https://github.com/w-okada/voice-changer/tree/master/server/voice_changer/Beatrice) |
-| [Beatrice v2](https://prj-beatrice.com/)                                                                     | supported | n/a                  | [独自](https://huggingface.co/wok000/vcclient_model/blob/main/beatrice_v2_beta/readme.md)  |
-| [MMVC](https://github.com/isletennos/MMVC_Trainer)                                                           | n/a       | supported            | リポジトリを参照してください。                                                             |
-| [so-vits-svc](https://github.com/svc-develop-team/so-vits-svc)                                               | n/a       | supported            | リポジトリを参照してください。                                                             |
-| [DDSP-SVC](https://github.com/yxlllc/DDSP-SVC)                                                               | n/a       | supported            | リポジトリを参照してください。                                                             |
-
-## スタンドアロン、ネットワーク経由の両構成をサポート
-
-ローカル PC で完結した音声変換も、ネットワークを介した音声変換もサポートしています。
-ネットワークを介した利用を行うことで、ゲームなどの高負荷なアプリケーションと同時に使用する場合に音声変換の負荷を外部にオフロードすることができます。
-
-![image](https://user-images.githubusercontent.com/48346627/206640768-53f6052d-0a96-403b-a06c-6714a0b7471d.png)
-
-## 複数プラットフォームに対応
-
-Windows, Mac(M1), Linux, Google Colab
-
-\*1 Linux はリポジトリを clone してお使いください。
-
-## REST API を提供
-
-各種プログラミング言語でクライアントを作成することができます。
-
-また、curl などの OS に組み込まれている HTTP クライアントを使って操作ができます。
-
-## トラブルシュート
-
-[通信編](tutorials/trouble_shoot_communication_ja.md)
-
-## 開発者の署名について
-
-本ソフトウェアは開発元の署名しておりません。下記のように警告が出ますが、コントロールキーを押しながらアイコンをクリックすると実行できるようになります。これは Apple のセキュリティポリシーによるものです。実行は自己責任となります。
-
-![image](https://user-images.githubusercontent.com/48346627/212567711-c4a8d599-e24c-4fa3-8145-a5df7211f023.png)
-
-## Acknowledgments
-
-- [立ちずんだもん素材](https://seiga.nicovideo.jp/seiga/im10792934)
-- [いらすとや](https://www.irasutoya.com/)
-- [つくよみちゃん](https://tyc.rei-yumesaki.net/)
-
-```
-  本ソフトウェアの音声合成には、フリー素材キャラクター「つくよみちゃん」が無料公開している音声データを使用しています。
-  ■つくよみちゃんコーパス（CV.夢前黎）
-  https://tyc.rei-yumesaki.net/material/corpus/
-  © Rei Yumesaki
+# 3. Launch
+python launcher.py
+# or build an EXE once:
+pyinstaller --onefile --windowed --name IstarVoiceChanger launcher.py
 ```
 
-- [あみたろの声素材工房](https://amitaro.net/)
-- [れぷりかどーる](https://kikyohiroto1227.wixsite.com/kikoto-utau)
+### Option B — Use the prebuilt engine you already have
 
-## 利用規約
-
-- リアルタイムボイスチェンジャーつくよみちゃんについては、つくよみちゃんコーパスの利用規約に準じ、次の目的で変換後の音声を使用することを禁止します。
+If you already have `main.exe` from w-okada's release, just place it at:
 
 ```
-
-■人を批判・攻撃すること。（「批判・攻撃」の定義は、つくよみちゃんキャラクターライセンスに準じます）
-
-■特定の政治的立場・宗教・思想への賛同または反対を呼びかけること。
-
-■刺激の強い表現をゾーニングなしで公開すること。
-
-■他者に対して二次利用（素材としての利用）を許可する形で公開すること。
-※鑑賞用の作品として配布・販売していただくことは問題ございません。
+Istar-Voice-Changer/engine/dist/main.exe
 ```
 
-- リアルタイムボイスチェンジャーあみたろについては、あみたろの声素材工房様の次の利用規約に準じます。詳細は[こちら](https://amitaro.net/voice/faq/#index_id6)
+The launcher will detect it automatically.
+
+---
+
+## 🖥️ Usage
+
+1. Run `python launcher.py` (or the built `IstarVoiceChanger.exe`).
+2. Click **▶ Start Voice Changer**.
+3. Wait ~10–60 s while the engine loads models (status shows **● Starting...**).
+4. When **● Online** appears, the web UI opens at `http://localhost:18000`.
+5. Pick a voice model, set input/output devices, and speak.
+
+> The engine takes time to load AI models on first start — this is normal.
+
+---
+
+## 🧠 Supported Models & Where to Get Them
+
+| Model | License | Notes | Model source |
+|-------|---------|-------|--------------|
+| **RVC v2** | MIT (code) | Best real-time latency (~170 ms) | [lj1995/VoiceConversionWebUI](https://huggingface.co/lj1995/VoiceConversionWebUI) |
+| **DDSP-SVC** | MIT (code) | Lightweight, CPU-friendly | [SVCFusion/DDSP6.1-Pretrain](https://huggingface.co/SVCFusion/DDSP6.1-Pretrain) |
+| **Beatrice v2** | CC BY-NC | Japanese TTS/VC | bundled with engine |
+| **MMVC / so-vits-svc** | AGPL-3.0 | archived upstream | community HF repos |
+| **Seed-VC** | permissive | zero-shot, multilingual | [Plachtaa/seed-vc](https://github.com/Plachtaa/seed-vc) |
+
+Search community models: `https://huggingface.co/models?search=rvc`
+
+---
+
+## 🏗️ Project Structure
 
 ```
-あみたろの声素材やコーパス読み上げ音声を使って音声モデルを作ったり、ボイスチェンジャーや声質変換などを使用して、自分の声をあみたろの声に変換して使うのもOKです。
-
-ただしその場合は絶対に、あみたろ（もしくは小春音アミ）の声に声質変換していることを明記し、あみたろ（および小春音アミ）が話しているわけではないことが誰でもわかるようにしてください。
-また、あみたろの声で話す内容は声素材の利用規約の範囲内のみとし、センシティブな発言などはしないでください。
+Istar-Voice-Changer/
+├── launcher.py            # GUI launcher (this project, MIT)
+├── setup.py              # dependency + engine download script
+├── config.json           # launcher config (port, mode)
+├── engine/               # downloaded upstream engine (gitignored)
+│   └── dist/
+│       └── main.exe      # voice-changer engine (CC BY-NC)
+├── server/               # upstream server code (forked)
+├── client/               # upstream web client (forked)
+├── trainer/              # upstream model trainer (forked)
+├── docs/                 # upstream docs (forked)
+└── logs/                 # launcher logs
 ```
 
-- リアルタイムボイスチェンジャー黄琴まひろについては、れぷりかどーるの利用規約に準じます。詳細は[こちら](https://kikyohiroto1227.wixsite.com/kikoto-utau/ter%EF%BD%8Ds-of-service)
+The `server/`, `client/`, `trainer/`, and `docs/` directories are the **unmodified upstream fork** and inherit w-okada's license. Only `launcher.py`, `setup.py`, and our docs are Istar additions (MIT).
 
-## 免責事項
+---
 
-本ソフトウェアの使用または使用不能により生じたいかなる直接損害・間接損害・波及的損害・結果的損害 または特別損害についても、一切責任を負いません。
+## 🔄 Keeping Upstream in Sync
+
+This is a fork with an `upstream` remote:
+
+```powershell
+git remote add upstream https://github.com/w-okada/voice-changer.git
+git fetch upstream
+git merge upstream/master   # or rebase
+```
+
+---
+
+## 📋 Roadmap
+
+- [ ] Bundle Applio-style UX improvements
+- [ ] ONNX/DirectML portable backend defaults
+- [ ] One-click model installer from HuggingFace
+- [ ] Preset voice packs (free, properly licensed)
+- [ ] Linux/macOS launcher parity
+
+---
+
+## ❤️ Contributing
+
+PRs welcome! Keep launcher code MIT-licensed. Respect upstream's CLA and the non-commercial nature of the engine/models.
+
+---
+
+## 📜 License Summary
+
+| Component | License |
+|-----------|---------|
+| Launcher, setup, our docs | MIT (`LICENSE.launcher`) |
+| Upstream engine & code | CC BY-NC 4.0 (upstream `LICENSE`) |
+| Model weights | varies (usually CC BY-NC) — user-supplied |
+
+See [`LICENSE`](LICENSE) (upstream) and [`LICENSE.launcher`](LICENSE.launcher) (ours).

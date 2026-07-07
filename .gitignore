@@ -75,3 +75,13 @@ beatrice_internal_api.cp310-win_amd64.pyd
 108_average_110b_10.bin
 
 server/model_dir_static/Beatrice-JVS
+
+# Istar Voice Changer launcher artifacts
+engine/
+logs/
+dist/
+build/
+__pycache__/
+*.spec
+config.json
+.DS_Store
