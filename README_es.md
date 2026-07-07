@@ -1,166 +1,128 @@
 # Istar Voice Changer
 
-> Un cambiador de voz en tiempo real, gratuito y de código abierto. Un fork comunitario de [w-okada/voice-changer](https://github.com/w-okada/voice-changer) centrado en un launcher fácil de usar, amplia compatibilidad de hardware y los mejores modelos de conversión de voz open-source.
+> Un cambiador de voz en tiempo real, gratuito y de código abierto. Fácil de usar,
+> compatible con MIT, y distribuido como un EXE portable **o** un instalador
+> profesional de Windows.
 
-[![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-blue.svg)](LICENSE)
-[![Engine](https://img.shields.io/badge/engine-2.0.78--beta-green.svg)](https://github.com/w-okada/voice-changer/releases)
+[![Licencia: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.launcher)
 
 ---
 
 ## ✨ ¿Qué es esto?
 
-**Istar Voice Changer** envuelve el potente motor de [w-okada/voice-changer](https://github.com/w-okada/voice-changer) tras una GUI amigable y simple. Te permite convertir tu voz en tiempo real usando modelos open-source de última generación (RVC, Beatrice v2, DDSP-SVC, MMVC, so-vits-svc) sin tocar la línea de comandos.
+**Istar Voice Changer** es un cambiador de voz ligero y amigable basado en
+**RVC (Retrieval-based Voice Conversion)** exportado a **ONNX**. Convierte tu voz
+en tiempo real usando modelos de IA — sin terminal, sin instalar Python, sin
+descargas de 2 GB.
 
-Este proyecto es un **fork**: mantenemos el motor y la arquitectura del upstream, añadimos nuestro propio launcher/empaquetado, y seguimos los releases del upstream para poder fusionar mejoras de vuelta.
+A diferencia de forks pesados que empaquetan un engine de 2 GB, este proyecto usa
+un **pipeline puramente ONNX** (ContentVec + generador de voz) que corre en CPU con
+`onnxruntime`. Toda la app pesa ~500 MB y el código es MIT.
 
-### Créditos y licencia
-
-- **Motor y modelos:** © w-okada / colaboradores de voice-changer. El motor (`main.exe`) y los modelos incluidos se distribuyen bajo **CC BY-NC 4.0** (no comercial). Ver el [`LICENSE`](https://github.com/w-okada/voice-changer/blob/master/LICENSE) del upstream.
-- **Launcher y empaquetado:** © Proyecto Istar Voice Changer (MIT para nuestras aportaciones — ver `LICENSE.launcher`).
-- **Modelos que añadas tú:** tú eres responsable de usar pesos de modelos obtenidos legalmente y con la licencia adecuada. La mayoría de los modelos comunitarios RVC/DDSP/so-vits se comparten bajo CC BY-NC o términos no especificados.
-
-> ⚠️ **Uso no comercial.** Esta herramienta es gratuita y está abierta para uso personal, educativo y no comercial. No la uses para suplantar a otras personas ni con fines comerciales sin los derechos correspondientes.
-
----
-
-## 🚀 Características
-
-- 🎮 **Instalador EXE de un clic** — sin Python, sin configuración, sin terminal
-- 📦 **Autocontenido** — el motor va dentro del EXE; solo ejecútalo
-- ⚙️ **Puerto** y modo **HTTP/HTTPS** configurables
-- 🌐 **Interfaz web** — se abre automáticamente cuando el servidor está listo
-- 📊 Información del sistema, logs y estado del motor a simple vista
-- 🧩 Multimodelo: RVC, Beatrice v2, DDSP-SVC, MMVC, so-vits-svc
-- 💻 Soporte de CPU + GPU (CUDA / DirectML / ROCm / OpenVINO) vía el motor del upstream
+### ¿Por qué ONNX?
+- ✅ Sin PyTorch, sin fairseq, sin compilación de CUDA
+- ✅ Ejecutable pequeño, rápido y portable
+- ✅ Licencia compatible con MIT (RVC-Project es MIT)
 
 ---
 
-## 📦 Instalación — Para usuarios (sin configuración)
+## 🎮 Características
 
-1. Descarga **`IstarVoiceChanger.exe`** desde la [página de releases](https://github.com/Israleche/Istar-Voice-Changer/releases).
-2. Haz doble clic. En la primera ejecución, pulsa **⬇ Install / Extract Engine** (un botón).
-3. Pulsa **▶ Start Voice Changer**.
-4. La interfaz web se abre en `http://localhost:18000` cuando esté lista (~10–60 s).
-
-Eso es todo. Sin instalar Python, sin línea de comandos.
-
-> Si ya tienes `main.exe` en algún sitio, pulsa **📂 Use existing main.exe** y selecciónalo — sin necesidad de descargar nada.
+- 🎤 **Conversión de voz en tiempo real** — habla al micrófono, escucha la voz cambiada
+- 🖥️ **Interfaz simple** — elige voz, dispositivo de entrada/salida, pulsa Iniciar
+- 🎚️ **Cambio de tono** — desliza semitonos hacia arriba/abajo
+- 📦 **EXE portable** — un solo archivo, doble clic para ejecutar
+- 💿 **Instalador (NSIS)** — acceso directo en Inicio + escritorio + desinstalador
+- 🔌 **Listo para cable virtual** — enruta la salida a VB-Audio / Voicemeeter para Discord
+- ➕ **Trae tus propias voces** — suelta cualquier RVC v2 `.onnx` en `models/voices/`
 
 ---
 
-## 🛠️ Instalación — Para desarrolladores
+## 📥 Descargar
 
-### Ejecutar desde el código fuente
+Ve a la página de [Releases](https://github.com/Israleche/Istar-Voice-Changer/releases):
+
+| Archivo | Úsalo si |
+|---------|----------|
+| `IstarVoiceChanger.exe` | Quieres la app **portable** — solo ejecútala |
+| `IstarVoiceChanger-Setup.exe` | Quieres una **instalación profesional** con accesos directos |
+
+---
+
+## 🚀 Inicio rápido (portable)
+
+1. Descarga `IstarVoiceChanger.exe`.
+2. Haz doble clic.
+3. Elige una **Voz**, tu **Micrófono** y tus **Altavoces** (o un cable virtual).
+4. Pulsa **▶ Start** y habla.
+
+Eso es todo.
+
+> 💡 Para Discord/juegos: instala [VB-Audio Virtual Cable](https://vb-audio.com/Cable/),
+> pon la **salida** de la app en "CABLE Input" y la entrada de tu app en "CABLE Output".
+
+---
+
+## 🛠️ Compilar desde el código
 
 ```powershell
-git clone https://github.com/Israleche/Istar-Voice-Changer.git
-cd Istar-Voice-Changer
-python setup.py          # instala dependencias (psutil, py7zr, pyinstaller)
-python launcher.py      # ejecuta la GUI
+# 1. Usa Python 3.10 o 3.11
+py -3.11 -m pip install -r requirements.txt   # o: python setup.py
+
+# 2. Ejecuta la interfaz
+py -3.11 launcher.py
+
+# 3. (opcional) Compila el EXE portable
+py -3.11 build_installer.py
+
+# 4. (opcional) Compila el instalador NSIS (requiere NSIS)
+makensis installer\IstarVoiceChanger.nsi
 ```
-
-### Compilar el EXE instalador todo-en-uno
-
-```powershell
-# Empaqueta el motor que ya tienes y luego compila un EXE autocontenido:
-python build_installer.py --engine-dir "C:/ruta/a/voice-changer/dist"
-# o deja que detecte ubicaciones comunes automáticamente:
-python build_installer.py
-```
-
-El resultado `dist/IstarVoiceChanger.exe` es totalmente autocontenido y se puede compartir tal cual.
-
-### Opción — Usar un motor ya compilado que tengas
-
-Si ya tienes `main.exe` de un release de w-okada, simplemente colócalo en:
-
-```
-Istar-Voice-Changer/engine/dist/main.exe
-```
-
-El launcher lo detectará automáticamente.
 
 ---
 
-## 🖥️ Uso
+## 🧠 Cómo funciona
 
-1. Ejecuta `python launcher.py` (o el `IstarVoiceChanger.exe` compilado).
-2. Pulsa **▶ Start Voice Changer**.
-3. Espera ~10–60 s mientras el motor carga los modelos (el estado muestra **● Starting...**).
-4. Cuando aparece **● Online**, la interfaz web se abre en `http://localhost:18000`.
-5. Elige un modelo de voz, configura los dispositivos de entrada/salida y habla.
+```
+mic ─▶ ContentVec-768 (ONNX) ─▶ características
+    └▶ Yin F0 (librosa)      ─▶ tono
+características + tono ─▶ generador de voz net_g (ONNX) ─▶ audio cambiado ─▶ altavoces
+```
 
-> El motor tarda en cargar los modelos de IA en el primer arranque — esto es normal.
-
----
-
-## 🧠 Modelos soportados y dónde conseguirlos
-
-| Modelo | Licencia | Notas | Fuente del modelo |
-|--------|----------|-------|-------------------|
-| **RVC v2** | MIT (código) | Mejor latencia en tiempo real (~170 ms) | [lj1995/VoiceConversionWebUI](https://huggingface.co/lj1995/VoiceConversionWebUI) |
-| **DDSP-SVC** | MIT (código) | Ligero, amigable con CPU | [SVCFusion/DDSP6.1-Pretrain](https://huggingface.co/SVCFusion/DDSP6.1-Pretrain) |
-| **Beatrice v2** | CC BY-NC | TTS/VC en japonés | incluido con el motor |
-| **MMVC / so-vits-svc** | AGPL-3.0 | upstream archivado | repos comunitarios HF |
-| **Seed-VC** | permisiva | zero-shot, multilingüe | [Plachtaa/seed-vc](https://github.com/Plachtaa/seed-vc) |
-
-Busca modelos comunitarios: `https://huggingface.co/models?search=rvc`
+Las tres etapas corren en CPU vía `onnxruntime`. Sin llamadas de red, sin telemetría.
 
 ---
 
-## 🏗️ Estructura del proyecto
+## 📂 Estructura del proyecto
 
 ```
 Istar-Voice-Changer/
-├── launcher.py            # GUI launcher (este proyecto, MIT)
-├── setup.py              # script de dependencias + descarga del motor
-├── config.json           # config del launcher (puerto, modo)
-├── engine/               # motor del upstream descargado (gitignored)
-│   └── dist/
-│       └── main.exe      # motor voice-changer (CC BY-NC)
-├── server/               # código del servidor del upstream (fork)
-├── client/               # cliente web del upstream (fork)
-├── trainer/              # entrenador de modelos del upstream (fork)
-├── docs/                 # docs del upstream (fork)
-└── logs/                 # logs del launcher
-```
-
-Los directorios `server/`, `client/`, `trainer/` y `docs/` son el **fork del upstream sin modificar** y heredan la licencia de w-okada. Solo `launcher.py`, `setup.py` y nuestros docs son aportaciones de Istar (MIT).
-
----
-
-## 🔄 Mantener el upstream sincronizado
-
-Este es un fork con un remoto `upstream`:
-
-```powershell
-git remote add upstream https://github.com/w-okada/voice-changer.git
-git fetch upstream
-git merge upstream/master   # o rebase
+├── launcher.py          # interfaz tkinter (MIT)
+├── voice_engine.py      # motor de inferencia RVC-ONNX (MIT)
+├── build_installer.py   # script de build PyInstaller
+├── setup.py             # instalador de dependencias
+├── requirements.txt     # dependencias fijadas
+├── installer/           # script NSIS del instalador
+├── models/
+│   ├── contentvec.onnx  # extractor HuBERT (MIT)
+│   ├── voices/          # tus modelos de voz RVC v2 .onnx
+│   └── README.md        # fuentes y licencias de modelos
+└── LICENSE.launcher     # licencia MIT de nuestro código
 ```
 
 ---
 
-## 📋 Hoja de ruta
+## 📜 Licencia
 
-- [ ] Mejoras de UX estilo Applio
-- [ ] Backend portable ONNX/DirectML por defecto
-- [ ] Instalador de modelos de un clic desde HuggingFace
-- [ ] Packs de voces preset (gratuitos, con licencia adecuada)
-- [ ] Paridad de launcher en Linux/macOS
-
----
-
-## ❤️ Contribuir
-
-¡Los PR son bienvenidos! Mantén el código del launcher con licencia MIT. Respeta la CLA del upstream y el carácter no comercial del motor/modelos.
+- **Código (launcher, motor, scripts):** MIT — ver `LICENSE.launcher`.
+- **Modelos:** RVC es MIT (RVC-Project). Los ONNX incluidos son exportes MIT;
+  los modelos de voz de la comunidad que añadas pueden tener sus propios términos.
+  Usa solo pesos obtenidos legalmente y con la licencia adecuada.
 
 ---
 
-## 📜 Resumen de licencias
+## ❤️ Créditos
 
-- **Motor y modelos incluidos:** CC BY-NC 4.0 (no comercial) — © w-okada / colaboradores.
-- **Launcher, instalador y docs de Istar:** MIT — © Proyecto Istar Voice Changer.
-- **Modelos que añadas:** según la licencia de cada modelo; usa solo pesos obtenidos legalmente.
-
-Consulta `LICENSE`, `LICENSE.launcher` y `LICENSE-CLA` para el texto completo.
+- [RVC-Project / Retrieval-based-Voice-Conversion-WebUI](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI) (MIT)
+- [TigreGotico/voiceclonnx-rvc](https://huggingface.co/TigreGotico/voiceclonnx-rvc) — ContentVec-768 ONNX
+- [Cycl0/voice-changer-models](https://huggingface.co/Cycl0/voice-changer-models) — voz de ejemplo ONNX
